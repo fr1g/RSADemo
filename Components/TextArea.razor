@@ -1,0 +1,19 @@
+<textarea class="w-full h-auto text-black text-lg p-2" rows="@Rows" @onchange="HandleChange" @oninput="HandleChange" @onblur="StateHasChanged" >@Value</textarea>
+
+@code {
+    // [Parameter] public RenderFragment ChildContent { get; set; } = null!;
+
+    [Parameter] public int Rows { get; set; } = 12;
+    [Parameter] public string Value { get; set; } = string.Empty;
+    
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+    
+    private async Task HandleChange(ChangeEventArgs e)
+    {
+        var newValue = e.Value?.ToString() ?? string.Empty;
+        Value = newValue;
+        await ValueChanged.InvokeAsync(newValue);
+    }
+
+}

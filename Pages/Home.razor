@@ -1,7 +1,99 @@
 ﻿@page "/"
+@using System.Text.RegularExpressions
+@using RSADemo.Components
+@using RSADemo.Helper
 
-<PageTitle>Home</PageTitle>
+<PageTitle>RSADemo</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="grid grid-cols-1 gap-3 h-full">
+    <h1 class="text-center text-xl font-semibold">
+        RSA Demo <br>
+        <p class="text-lg italic">@(_occurredErrorWhileInitializeRsa ? "The E value has set to 5 as fallback since a coprime issue happened. Refresh this page to try on a new instance." : "RSA Instance running without exception :)")</p>
+    </h1>
+    <h3 class="text-xl">Enter Raw Content</h3>
+    <TextArea Rows="6" @bind-Value="@TextContent" />
+    <br>
+    <h3 class="text-xl">Generated keys on this Instance</h3>
+    <p class="font-semibold text-lg underlined">@KeyPair</p>
+    <br>
+    <h3 class="text-xl">Encrypted</h3>
+    <TextArea Rows="6" @bind-Value="@EncryptedIO" />
+    <h3 class="text-xl">Decrypt Back:</h3>
+    <div>
+        @DecryptBack
+    </div>
+    <button class="font-semibold bg-blue-400 cursor-pointer opacity-100 hover:opacity-80 active:opacity-70 text-xl border rounded-lg shadow-md transition hover:shadow-lg active:shadow"
+            @onclick="RunDecrypt"
+    >
+        Decrypt the Encrypted BACK AGAIN
+    </button>
+</div>
 
-Welcome to your new app.
+@code{
+    public RSAHelper Rsa;
+    public (string pub, string priv)? KeyPair;
+    bool _occurredErrorWhileInitializeRsa = false;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        this.Rsa = new();
+        try
+        {
+            this.KeyPair = Rsa.generateKey();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            this.KeyPair = Rsa.generateKey(true);
+            _occurredErrorWhileInitializeRsa = true;
+        }
+    }
+
+    private string? _tc;
+    private string? _encryptedBlock;
+
+    private string? _back;
+
+    public string? DecryptBack
+    {
+        get
+        {
+            return this._back ?? "Nothing To Show_";
+        }
+        set
+        {
+            this._back = value;
+            StateHasChanged();
+        }
+    }
+
+    public string? TextContent
+    {
+        get => this._tc ?? "";
+        set
+        {
+            this._tc = value;
+            this.EncryptedIO = RunEncrypt(this._tc ?? "");
+            StateHasChanged();
+        } 
+    }    
+    public string? EncryptedIO
+    {
+        get => this._encryptedBlock;
+        set => this._encryptedBlock = value; 
+    }
+
+    public string RunEncrypt(string was)
+    {
+        if (was == "") return was;
+        return $"{RSAHelper.Encrypt(was, Rsa.KeyE, Rsa.KeyN)}";
+    }
+
+    public void RunDecrypt()
+    {
+        this.DecryptBack = RSAHelper.Decrypt(_encryptedBlock ?? "", Rsa.KeyD, Rsa.KeyN);
+        StateHasChanged();
+    }
+
+}
