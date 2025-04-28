@@ -13,7 +13,7 @@ public class RSAHelper
     public int KeyE { get; set; }
     public int KeyD { get; set; }
     
-    // C <-> M: e || d with n
+    // C <-> M: e || d with n 
 
     public static string Encrypt(string raw, int e, int n)
     {
